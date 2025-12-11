@@ -1,4 +1,4 @@
-name: Deploy <SERVICE_NAME> Lambda
+name: Deploy Order Service Lambda
 
 on:
   push:
@@ -11,10 +11,10 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
 
@@ -22,7 +22,7 @@ jobs:
         run: npm install
 
       - name: Zip Lambda Code
-        run: zip -r <SERVICE_NAME>.zip .
+        run: zip -r order_service.zip .
 
       - name: Update Lambda Function
         uses: appleboy/lambda-action@v0.1.2
@@ -30,5 +30,5 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws_region: eu-north-1
-          function_name: <SERVICE_NAME>
-          zip_file: <SERVICE_NAME>.zip
+          function_name: order_service
+          zip_file: order_service.zip

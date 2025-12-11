@@ -18,3 +18,15 @@ export const getOrderById = async (req, res) => {
     return failure(res, error.message);
   }
 };
+
+export const cancelOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+
+    const canceledOrder = await cancelOrderService(orderId);
+
+    return success(res, "Order cancelled successfully", canceledOrder);
+  } catch (error) {
+    return failure(res, error.message, 400);
+  }
+};

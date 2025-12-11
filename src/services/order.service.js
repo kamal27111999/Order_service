@@ -35,3 +35,28 @@ export const fetchOrder = async (orderId) => {
 
   return result.Item;
 };
+
+export const cancelOrderService = async (orderId) => {
+  const order = await fetchOrder(orderId);
+
+  const notAllowedStatuses = ["accepted", "packed", "shipped", "delivered"];
+
+  if (notAllowedStatuses.includes(order.orderStatus)) {
+    throw new Error("You cannot cancel this order now");
+  }
+
+  const updated = await docClient.send(
+    new UpdateCommand({
+      TableName: TABLE,
+      Key: { orderId },
+      UpdateExpression: "set orderStatus = :status, cancelledAt = :time",
+      ExpressionAttributeValues: {
+        ":status": "cancelled",
+        ":time": Date.now(),
+      },
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  return updated.Attributes;
+};

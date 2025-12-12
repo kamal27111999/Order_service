@@ -12,9 +12,9 @@ const client = new DynamoDBClient({
   },
 });
 
-console.log("AWS REGION:", process.env.AWS_REGION);
-console.log("AWS ACCESS:", process.env.AWS_ACCESS_KEY_ID);
-console.log("AWS SECRET:", process.env.AWS_SECRET_ACCESS_KEY);
+// console.log("AWS REGION:", process.env.AWS_REGION);
+// console.log("AWS ACCESS:", process.env.AWS_ACCESS_KEY_ID);
+// console.log("AWS SECRET:", process.env.AWS_SECRET_ACCESS_KEY);
 
 
 export const docClient = DynamoDBDocumentClient.from(client);

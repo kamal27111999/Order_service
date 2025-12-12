@@ -1,5 +1,5 @@
 import { docClient } from "../config/dynamo.js";
-import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuid } from "uuid";
 
 const TABLE = "order_table";   
@@ -24,11 +24,11 @@ export const saveOrder = async (data) => {
   return item;
 };
 
-export const fetchOrder = async (orderID) => {
+export const fetchOrder = async (orderId) => {
   const result = await docClient.send(
     new GetCommand({
       TableName: TABLE,
-      Key: { orderID },
+      Key: { orderID: Number(orderId) } 
     })
   );
 
@@ -37,27 +37,38 @@ export const fetchOrder = async (orderID) => {
   return result.Item;
 };
 
-export const cancelOrderService = async (orderID) => {
-  const order = await fetchOrder(orderID);
 
-  const notAllowedStatuses = ["accepted", "packed", "shipped", "delivered"];
+export const cancelOrderService = async (orderId) => {
+  const numericId = Number(orderId);
 
-  if (notAllowedStatuses.includes(order.orderStatus)) {
+  const order = await fetchOrder(numericId);
+
+  const notAllowed = ["accepted", "packed", "shipped", "delivered"];
+  if (notAllowed.includes(order.orderStatus)) {
     throw new Error("You cannot cancel this order now");
+  }
+
+  const now = Date.now();
+  const createdAt = order.createdAt;
+  const diffInMinutes = (now - createdAt) / (1000 * 60);
+
+  if (diffInMinutes > 10) {
+    throw new Error("Cancellation window expired — you can cancel only within 10 minutes");
   }
 
   const updated = await docClient.send(
     new UpdateCommand({
       TableName: TABLE,
-      Key: { orderID },
-      UpdateExpression: "set orderStatus = :status, cancelledAt = :time",
+      Key: { orderID: numericId },
+      UpdateExpression: "set orderStatus = :cancelled, cancelledAt = :time",
       ExpressionAttributeValues: {
-        ":status": "cancelled",
-        ":time": Date.now(),
+        ":cancelled": "cancelled",
+        ":time": Date.now()
       },
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "ALL_NEW"
     })
   );
 
   return updated.Attributes;
 };
+

@@ -21,9 +21,9 @@ export const getOrderById = async (req, res) => {
 
 export const cancelOrder = async (req, res) => {
   try {
-    const orderId = req.params.id;
+    const orderID = req.params.id;
 
-    const canceledOrder = await cancelOrderService(orderId);
+    const canceledOrder = await cancelOrderService(orderID);
 
     return success(res, "Order cancelled successfully", canceledOrder);
   } catch (error) {

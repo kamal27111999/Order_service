@@ -2,22 +2,23 @@ import express from "express";
 import serverless from "serverless-http";
 import dotenv from "dotenv";
 
+import orderRoutes from "./routes/order.routes.js";
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-// -------- Test Route --------
+app.use("/orders", orderRoutes);
+
 app.get("/", (req, res) => {
   res.json({ message: "Server is running (ESM version)!" });
 });
 
-// -------- Example API Route --------
 app.get("/api/test", (req, res) => {
   res.json({ success: true, data: "API working fine!" });
 });
 
-// -------- LOCAL MODE --------
 if (process.env.IS_LOCAL === "true") {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
@@ -25,5 +26,4 @@ if (process.env.IS_LOCAL === "true") {
   });
 }
 
-// -------- LAMBDA EXPORT --------
 export const handler = serverless(app);

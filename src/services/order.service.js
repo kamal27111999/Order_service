@@ -5,10 +5,11 @@ import { v4 as uuid } from "uuid";
 const TABLE = "order_table";   
 
 export const saveOrder = async (data) => {
-  const orderId = uuid();
+  const orderID = Date.now();   
+
 
   const item = {
-    orderId,
+    orderID,
     ...data,
     createdAt: Date.now(),
   };
@@ -23,11 +24,11 @@ export const saveOrder = async (data) => {
   return item;
 };
 
-export const fetchOrder = async (orderId) => {
+export const fetchOrder = async (orderID) => {
   const result = await docClient.send(
     new GetCommand({
       TableName: TABLE,
-      Key: { orderId },
+      Key: { orderID },
     })
   );
 
@@ -36,8 +37,8 @@ export const fetchOrder = async (orderId) => {
   return result.Item;
 };
 
-export const cancelOrderService = async (orderId) => {
-  const order = await fetchOrder(orderId);
+export const cancelOrderService = async (orderID) => {
+  const order = await fetchOrder(orderID);
 
   const notAllowedStatuses = ["accepted", "packed", "shipped", "delivered"];
 
@@ -48,7 +49,7 @@ export const cancelOrderService = async (orderId) => {
   const updated = await docClient.send(
     new UpdateCommand({
       TableName: TABLE,
-      Key: { orderId },
+      Key: { orderID },
       UpdateExpression: "set orderStatus = :status, cancelledAt = :time",
       ExpressionAttributeValues: {
         ":status": "cancelled",

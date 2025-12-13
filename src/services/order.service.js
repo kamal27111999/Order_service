@@ -50,10 +50,13 @@ export const cancelOrderService = async (orderId) => {
 
   const now = Date.now();
   const createdAt = order.createdAt;
+
   const diffInMinutes = (now - createdAt) / (1000 * 60);
 
-  if (diffInMinutes > 10) {
-    throw new Error("Cancellation window expired — you can cancel only within 10 minutes");
+  if (diffInMinutes > 3) {
+    throw new Error(
+      "Cancellation window expired — you can cancel only within 3 minutes"
+    );
   }
 
   const updated = await docClient.send(
@@ -71,4 +74,5 @@ export const cancelOrderService = async (orderId) => {
 
   return updated.Attributes;
 };
+
 

@@ -3,6 +3,8 @@ import serverless from "serverless-http";
 import dotenv from "dotenv";
 
 import orderRoutes from "./routes/order.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
+
 import { setupSwagger } from "../swagger/swaggerSetup.js";
 
 dotenv.config();
@@ -16,6 +18,7 @@ app.use(express.json());
 setupSwagger(app);
 
 app.use("/orders", orderRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Server is running (ESM version)!" });

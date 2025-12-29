@@ -1,32 +1,46 @@
-import { saveOrder, fetchOrder, cancelOrderService } from "../services/order.service.js";
-import { success, failure } from "../utils/response.js";
+import Order from "../models/order.model.js";
+import axios from "axios";
 
-export const createOrder = async (req, res) => {
+export const placeOrder = async (req, res) => {
   try {
-    const order = await saveOrder(req.body);
-    return success(res, "Order created", order);
+    const userId = req.user.userId;
+    const { productId, quantity, price, sellerId, deliveryAddress } = req.body;
+
+    if (!productId || !quantity || !price || !sellerId) {
+      return res.status(400).json({ message: "Missing order fields" });
+    }
+
+    // 1️⃣ Reduce stock in Seller Service
+    await axios.patch(
+      `${process.env.SELLER_SERVICE_URL}/api/products/${productId}/quantity`,
+      { quantityChange: -quantity },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.INTERNAL_SELLER_TOKEN}`,
+        },
+      }
+    );
+
+    // 2️⃣ Create order in MongoDB
+    const order = await Order.create({
+      userId,
+      sellerId,
+      productId,
+      quantity,
+      priceAtPurchase: price,
+      deliveryAddress,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      order,
+    });
   } catch (error) {
-    return failure(res, error.message);
-  }
-};
-
-export const getOrderById = async (req, res) => {
-  try {
-    const order = await fetchOrder(req.params.id);
-    return success(res, "Order fetched", order);
-  } catch (error) {
-    return failure(res, error.message);
-  }
-};
-
-export const cancelOrder = async (req, res) => {
-  try {
-    const orderID = req.params.id;
-
-    const canceledOrder = await cancelOrderService(orderID);
-
-    return success(res, "Order cancelled successfully", canceledOrder);
-  } catch (error) {
-    return failure(res, error.message, 400);
+    console.error("Order Error:", error.message);
+    return res.status(500).json({
+      message: "Order placement failed",
+      error: error.message,
+    });
   }
 };
